@@ -1,1 +1,45 @@
+name: Build StreakKeeper APK
 
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'StreakKeeper-phase1.zip'
+      - '.github/workflows/build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract project
+        run: unzip -q StreakKeeper-phase1.zip -d .
+
+      - name: Build debug APK
+        working-directory: StreakKeeper
+        run: gradle assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreakKeeper-debug-APK
+          path: StreakKeeper/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+        
